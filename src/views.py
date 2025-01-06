@@ -224,4 +224,38 @@ def get_stock_prices(input_datetime: datetime) -> List[StockPrice]:
         raise
 
 
-def generate_report(input_dateime: datetime) -> dict:
+def generate_report(datetime_str: str) -> dict:
+    try:
+        input_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+        report = {
+            "greeting" : get_greeting(input_datetime),
+            "cards": get_card_info(),
+            "top_transactions": get_top_transaction(input_datetime),
+            "currency_rates": get_currency_rate(input_datetime),
+            "stocks_price": get_stock_prices(input_datetime)
+        }
+
+        logger.info(
+            f"Отчет успешно сформирован для {datetime_str}. "
+            f"Получено {len(report['cards'])} карт, "
+            f"{len(report['top_transactions'])} транзакций, "
+            f"{len(report['currency_rates'])} курсов валют, "
+            f"{len(report['stock_prices'])} цен акций."
+        )
+
+        return report
+
+    except  ValueError as e:
+        error_msg = f"Неверный формат даты/времени: {str(e)}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    except FileNotFoundError as e:
+        error_msg = f"Не найден файл с данными: {str(e)}"
+        logger.error(error_msg)
+        raise FileNotFoundError(error_msg)
+
+    except Exception as e:
+        error_msg = f"Ошибка при формировании отчета: {str(e)}"
+        logger.error(error_msg)
+        raise
