@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime
 from typing import List, Literal, TypedDict
+from xml.etree import ElementTree
 
 import pandas as pd
+import requests
 
 from main import FILE_PATH
 
@@ -20,6 +22,11 @@ class Transaction(TypedDict):
     amount: float
     category: str
     description: str
+
+
+class CurrencyRate(TypedDict):
+    currency: str
+    rate: float
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -102,6 +109,51 @@ def get_top_transaction(input_datetime: datetime) -> List[Transaction]:
         return top_transactions
     except Exception as e:
         logger.error(f"ошибка при получении транзакции: {str(e)}")
+        raise
+
+
+def get_currency_rate(input_datetime: datetime) -> List[CurrencyRate]:
+    try:
+        date_str = input_datetime.strftime("%d/%m/%Y")
+        url = f"https://www.cbr.ru/scripts/XML_daily.asp?date_req={date_str}"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        tree = ElementTree.fromstring(response.content)
+        currencies_is_interest = {"USD", "EUR"}
+        result = []
+        for valute in tree.findall("Valute"):
+            char_code = valute.find("CharCode")
+            if char_code is None or char_code.text is None:
+                logger.warning("Найден элемент Valute без кода валюты")
+                continue
+
+            if char_code in currencies_is_interest:
+                value_element = valute.find("Value")
+                if value_element is None or value_element.text is None:
+                    logger.warning(f"Для валюты {char_code} не найдено значение курса")
+                    continue
+                try:
+                    rate_str = value_element.text.replace(",", ".")
+                    rate = float(rate_str)
+                    currency_rate: CurrencyRate = {"currency": str(char_code), "rate": rate}
+                    result.append(currency_rate)
+
+                except ValueError as e:
+                    logger.warning(f"Не удалось преобразовать курс валюты {char_code}: {str(e)}")
+                    continue
+
+        if len(result) != len(currencies_is_interest):
+            missing = currencies_is_interest - {r["currency"] for r in result}
+            logger.warning(f"Не удалось получить курсы для валют: {missing}")
+        return result
+    except requests.RequestException as e:
+        logger.error(f"Ошибка при запросе к API ЦБ РФ: {e}")
+        raise
+    except ElementTree.ParseError as e:
+        logger.error(f"Ошибка при парсинге XML ответа: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"Непредвиденная ошибка при получении курсов валют: {str(e)}")
         raise
 
 
