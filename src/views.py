@@ -1,10 +1,13 @@
 import logging
+import os
+import time
 from datetime import datetime
 from typing import List, Literal, TypedDict
 from xml.etree import ElementTree
 
 import pandas as pd
 import requests
+from dotenv import load_dotenv
 
 from main import FILE_PATH
 
@@ -29,14 +32,14 @@ class CurrencyRate(TypedDict):
     rate: float
 
 
+class StockPrice(TypedDict):
+    stock: str
+    price: float
+
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 logger = logging.getLogger(__name__)
-
-
-def generate_report(datetime_str: str) -> datetime:
-    input_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
-    return input_datetime
 
 
 def get_greeting(input_datetime: datetime) -> GreetingType:
@@ -157,6 +160,68 @@ def get_currency_rate(input_datetime: datetime) -> List[CurrencyRate]:
         raise
 
 
-#  FileNotFoundError: если файл не найден
-#  pd.errors.EmptyDataError: если файл пуст
-#  ValueError: если данные в файле некорректны
+load_dotenv()
+ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+
+if not ALPHA_VANTAGE_API_KEY:
+    raise ValueError("API ключ Alpha Vantage не найден в переменных окружения")
+
+
+def get_stock_prices(input_datetime: datetime) -> List[StockPrice]:
+    try:
+        stock_of_interest = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
+        result = []
+
+        base_url = "https://www.alphavantage.co/query"
+        logger.info(f"Начинаем получение цен акций на {input_datetime}")
+
+        for symbol in stock_of_interest:
+            try:
+                params = {"function": "GLOBAL_QUOTE", "symbol": symbol, "apikey": ALPHA_VANTAGE_API_KEY}
+                logger.debug(f"Запрашиваем данные для {symbol}")
+
+                response = requests.get(base_url, params=params, timeout=10)
+                response.raise_for_status()
+
+                data = response.json()
+
+                if "Global Quote" not in data:
+                    logger.warning(f"Неожиданный формат ответа для {symbol}: {data}")
+                    continue
+
+                quote_data = data["Global Quote"]
+
+                if "05. price" not in quote_data:
+                    logger.warning(f"Нет данных о цене для {symbol}")
+                    continue
+
+                try:
+                    price = float(quote_data["05. price"])
+
+                    stock_price: StockPrice = {"stock": str(symbol), "price": float(round(price, 2))}
+
+                    result.append(stock_price)
+                    logger.debug(f"Успешно получена цена для {symbol}: {price}")
+
+                except (ValueError, TypeError) as e:
+                    logger.error(f"Ошибка преобразования цены для {symbol}: {e}")
+                    continue
+
+                time.sleep(0.25)
+
+            except requests.RequestException as e:
+                logger.error(f"Ошибка запроса для {symbol}: {e}")
+                continue
+
+            if len(result) != len(stock_of_interest):
+                missing = set(stock_of_interest) - {s["stock"] for s in result}
+                logger.warning(f"Не удалось получить цены для следующих акций: {missing}")
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Непредвиденная ошибка при получении цен акций: {str(e)}")
+        raise
+
+
+def generate_report(input_dateime: datetime) -> dict:
