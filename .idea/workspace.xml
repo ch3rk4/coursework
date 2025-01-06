@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8ae744d-e3c4-4ec8-957e-71389da3f37d" name="Changes" comment="add funcs get_greeting and get_card_info">
+    <list default="true" id="a8ae744d-e3c4-4ec8-957e-71389da3f37d" name="Changes" comment="fix views.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,7 +99,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735495664701</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="fix views.py">
+      <option name="closed" value="true" />
+      <created>1736171636154</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1736171636155</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -119,6 +127,7 @@
     <MESSAGE value="base for funcs and tests" />
     <MESSAGE value="fix pyproject.toml" />
     <MESSAGE value="add funcs get_greeting and get_card_info" />
-    <option name="LAST_COMMIT_MESSAGE" value="add funcs get_greeting and get_card_info" />
+    <MESSAGE value="fix views.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix views.py" />
   </component>
 </project>
