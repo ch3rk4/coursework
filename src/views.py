@@ -1,10 +1,7 @@
-import json
+
 import logging
-import os
 from datetime import datetime
-from decimal import Decimal
-from pathlib import Path
-from typing import Dict, List, Literal, TypedDict
+from typing import List, Literal, TypedDict
 
 import pandas as pd
 
@@ -54,14 +51,17 @@ def get_card_info() -> List[CardInfo]:
             last_digits = str(card_number)[-4:]
 
             card_transaction = df[(df["Номер карты"] == last_digits) & (df["Сумма платежа"] < 0)]
-            total_spent = abs(card_transaction["Сумма платежа"].sum())
+            total_spent = float(abs(card_transaction["Сумма платежа"].sum()))
 
-            cashback = total_spent * 0.01
+            cashback = float(total_spent * 0.01)
 
-            cards_info.append(
-                {"last_digits": str(last_digits), "total_spent": float(total_spent), "cashback": float(cashback)}
-            )
+        card_info: CardInfo = {
+            "last_digits": str(last_digits),
+            "total_spent": float(total_spent),
+            "cashback": float(cashback),
+        }
 
+        cards_info.append(card_info)
         return cards_info
     except Exception as e:
         logger.error(f"Ошибка при чтении файла транзакций: {str(e)}")
