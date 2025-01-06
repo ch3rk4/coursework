@@ -228,11 +228,11 @@ def generate_report(datetime_str: str) -> dict:
     try:
         input_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
         report = {
-            "greeting" : get_greeting(input_datetime),
+            "greeting": get_greeting(input_datetime),
             "cards": get_card_info(),
             "top_transactions": get_top_transaction(input_datetime),
             "currency_rates": get_currency_rate(input_datetime),
-            "stocks_price": get_stock_prices(input_datetime)
+            "stocks_price": get_stock_prices(input_datetime),
         }
 
         logger.info(
@@ -245,7 +245,7 @@ def generate_report(datetime_str: str) -> dict:
 
         return report
 
-    except  ValueError as e:
+    except ValueError as e:
         error_msg = f"Неверный формат даты/времени: {str(e)}"
         logger.error(error_msg)
         raise ValueError(error_msg)
