@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime, time
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 import pandas as pd
 import requests

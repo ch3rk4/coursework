@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="a8ae744d-e3c4-4ec8-957e-71389da3f37d" name="Changes" comment="use black and isort">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_views.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,15 +38,43 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python tests.Python tests for test_reports.test_invalid_date_format.executor": "Run",
+    "Python tests.Python tests for test_reports.test_report_directory_creation.executor": "Run",
+    "Python tests.Python tests for test_reports.test_save_report_custom_filename.executor": "Run",
+    "Python tests.Python tests for test_reports.test_save_report_default_filename.executor": "Run",
+    "Python tests.Python tests for test_reports.test_save_report_with_dataframe.executor": "Run",
+    "Python tests.Python tests for test_reports.test_spending_by_category_basic.executor": "Run",
+    "Python tests.Python tests for test_reports.test_spending_by_category_no_data.executor": "Run",
+    "Python tests.Python tests for test_reports.test_spending_by_category_specific_date.executor": "Run",
+    "Python tests.Python tests for test_services.test_calculate_investment.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_basic.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_different_limits.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_different_month.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_empty.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_file.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_invalid_limit.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_invalid_month.executor": "Run",
+    "Python tests.Python tests for test_services.test_investment_bank_negative_amounts.executor": "Run",
+    "Python tests.Python tests for test_services.test_round_amount.executor": "Run",
+    "Python tests.Python tests for test_views.test_analyze_cards.executor": "Run",
+    "Python tests.Python tests for test_views.test_api_error_handling.executor": "Run",
+    "Python tests.Python tests for test_views.test_empty_dataframe.executor": "Run",
     "Python tests.Python tests for test_views.test_get_card_info.executor": "Run",
     "Python tests.Python tests for test_views.test_get_card_info_success.executor": "Run",
+    "Python tests.Python tests for test_views.test_get_currency_rates.executor": "Run",
+    "Python tests.Python tests for test_views.test_get_dashboard_data.executor": "Run",
+    "Python tests.Python tests for test_views.test_get_dashboard_data_invalid_input.executor": "Run",
     "Python tests.Python tests for test_views.test_get_greeting.executor": "Run",
+    "Python tests.Python tests for test_views.test_get_stock_prices.executor": "Run",
+    "Python tests.Python tests for test_views.test_get_top_transaction.executor": "Run",
+    "Python tests.Python tests for test_views.test_get_top_transactions.executor": "Run",
+    "Python tests.Python tests for test_views.test_load_user_settings.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "session-3"
   }
 }]]></component>
-  <component name="RunManager" selected="Python tests.Python tests for test_views.test_get_card_info_success">
-    <configuration name="Python tests for test_views.test_get_card_info" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python tests.Python tests for test_reports.test_report_directory_creation">
+    <configuration name="Python tests for test_reports.test_invalid_date_format" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="coursework" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -60,11 +85,11 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_views.test_get_card_info&quot;" />
+      <option name="_new_target" value="&quot;test_reports.test_invalid_date_format&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_views.test_get_card_info_success" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_reports.test_report_directory_creation" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="coursework" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -75,11 +100,11 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_views.test_get_card_info_success&quot;" />
+      <option name="_new_target" value="&quot;test_reports.test_report_directory_creation&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_views.test_get_greeting" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_reports.test_save_report_custom_filename" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="coursework" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -90,15 +115,47 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_views.test_get_greeting&quot;" />
+      <option name="_new_target" value="&quot;test_reports.test_save_report_custom_filename&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_reports.test_save_report_default_filename" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="coursework" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_reports.test_save_report_default_filename&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_reports.test_save_report_with_dataframe" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="coursework" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_reports.test_save_report_with_dataframe&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.Python tests for test_views.test_get_card_info_success" />
-        <item itemvalue="Python tests.Python tests for test_views.test_get_card_info" />
-        <item itemvalue="Python tests.Python tests for test_views.test_get_greeting" />
+        <item itemvalue="Python tests.Python tests for test_reports.test_report_directory_creation" />
+        <item itemvalue="Python tests.Python tests for test_reports.test_invalid_date_format" />
+        <item itemvalue="Python tests.Python tests for test_reports.test_save_report_with_dataframe" />
+        <item itemvalue="Python tests.Python tests for test_reports.test_save_report_custom_filename" />
+        <item itemvalue="Python tests.Python tests for test_reports.test_save_report_default_filename" />
       </list>
     </recent_temporary>
   </component>
@@ -206,7 +263,71 @@
       <option name="project" value="LOCAL" />
       <updated>1736185786917</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="rework all project: new code for funcs, new file with operations">
+      <option name="closed" value="true" />
+      <created>1736365285197</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1736365285197</updated>
+    </task>
+    <task id="LOCAL-00013" summary="write tests for funcs in views.py">
+      <option name="closed" value="true" />
+      <created>1736365416806</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1736365416808</updated>
+    </task>
+    <task id="LOCAL-00014" summary="use black and isort and write funcs in services.py">
+      <option name="closed" value="true" />
+      <created>1736370696853</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1736370696855</updated>
+    </task>
+    <task id="LOCAL-00015" summary="use black and isort and write test for funcs from services.py">
+      <option name="closed" value="true" />
+      <created>1736370750405</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1736370750405</updated>
+    </task>
+    <task id="LOCAL-00016" summary="fix in test_services.py">
+      <option name="closed" value="true" />
+      <created>1736371011164</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1736371011165</updated>
+    </task>
+    <task id="LOCAL-00017" summary="write funcs for reports.py and fixes in services.py and test_services.py">
+      <option name="closed" value="true" />
+      <created>1736371270367</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1736371270367</updated>
+    </task>
+    <task id="LOCAL-00018" summary="write tests for reports.py and fix reports.py">
+      <option name="closed" value="true" />
+      <created>1736371662616</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1736371662619</updated>
+    </task>
+    <task id="LOCAL-00019" summary="use black and isort">
+      <option name="closed" value="true" />
+      <created>1736371818622</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1736371818624</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -231,6 +352,13 @@
     <MESSAGE value="add get_currency_rate func in views.py" />
     <MESSAGE value="add get_stock_prices func in views.py and add new requirements" />
     <MESSAGE value="add generate_report func in views.py" />
+    <MESSAGE value="rework all project: new code for funcs, new file with operations" />
+    <MESSAGE value="write tests for funcs in views.py" />
+    <MESSAGE value="use black and isort and write funcs in services.py" />
+    <MESSAGE value="use black and isort and write test for funcs from services.py" />
+    <MESSAGE value="fix in test_services.py" />
+    <MESSAGE value="write funcs for reports.py and fixes in services.py and test_services.py" />
+    <MESSAGE value="write tests for reports.py and fix reports.py" />
     <MESSAGE value="use black and isort" />
     <option name="LAST_COMMIT_MESSAGE" value="use black and isort" />
   </component>
