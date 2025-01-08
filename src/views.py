@@ -23,12 +23,6 @@ API_KEY = os.getenv('API_KEY')
 def get_greeting(current_time: time) -> str:
     """
     Return appropriate greeting based on time of day.
-
-    Args:
-        current_time: Current time object
-
-    Returns:
-        str: Appropriate greeting message
     """
     if time(4, 0) <= current_time < time(12, 0):
         return "Доброе утро"
@@ -43,12 +37,6 @@ def get_greeting(current_time: time) -> str:
 def analyze_cards(df: pd.DataFrame) -> List[Dict[str, Union[str, float]]]:
     """
     Analyze card transactions and calculate totals and cashback.
-
-    Args:
-        df: DataFrame with transaction data
-
-    Returns:
-        List of dictionaries containing card analysis
     """
     cards_info = []
 
@@ -73,13 +61,6 @@ def analyze_cards(df: pd.DataFrame) -> List[Dict[str, Union[str, float]]]:
 def get_top_transactions(df: pd.DataFrame, n: int = 5) -> List[Dict[str, Union[str, float]]]:
     """
     Get top N transactions by amount.
-
-    Args:
-        df: DataFrame with transaction data
-        n: Number of top transactions to return
-
-    Returns:
-        List of dictionaries containing top transactions
     """
     # Проверяем, не пустой ли DataFrame
     if df.empty:
@@ -107,12 +88,6 @@ def get_top_transactions(df: pd.DataFrame, n: int = 5) -> List[Dict[str, Union[s
 def get_currency_rates(currencies: List[str]) -> List[Dict[str, Union[str, float]]]:
     """
     Fetch current currency rates from API.
-
-    Args:
-        currencies: List of currency codes to fetch
-
-    Returns:
-        List of dictionaries containing currency rates
     """
     try:
         # Using Exchange Rates API as an example
@@ -140,12 +115,6 @@ def get_currency_rates(currencies: List[str]) -> List[Dict[str, Union[str, float
 def get_stock_prices(stocks: List[str]) -> List[Dict[str, Union[str, float]]]:
     """
     Fetch current stock prices from API.
-
-    Args:
-        stocks: List of stock symbols to fetch
-
-    Returns:
-        List of dictionaries containing stock prices
     """
     try:
         # Using Alpha Vantage API as an example
@@ -172,9 +141,6 @@ def get_stock_prices(stocks: List[str]) -> List[Dict[str, Union[str, float]]]:
 def load_user_settings() -> Dict[str, List[str]]:
     """
     Load user settings from JSON file.
-
-    Returns:
-        Dictionary containing user settings
     """
     try:
         with open('user_settings.json', 'r') as f:
@@ -187,12 +153,6 @@ def load_user_settings() -> Dict[str, List[str]]:
 def get_dashboard_data(datetime_str: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
     """
     Main function to generate dashboard data.
-
-    Args:
-        datetime_str: Input datetime string in format 'YYYY-MM-DD HH:MM:SS'
-
-    Returns:
-        Dictionary containing all dashboard data
     """
     try:
         # Parse input datetime
