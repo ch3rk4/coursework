@@ -1,3 +1,6 @@
+from datetime import datetime
+from unittest.mock import patch
+
 import pandas as pd
 import pytest
 
@@ -58,6 +61,21 @@ def test_investment_bank_negative_amounts():
     assert result == 38.0
 
 
+def test_investment_bank_realistic_data():
+    """Тестирование на реалистичных данных"""
+    transactions = [
+        {"Дата операции": "2024-01-15", "Сумма операции": 1712.0},
+        {"Дата операции": "2024-01-16", "Сумма операции": 999.99},
+        {"Дата операции": "2024-02-01", "Сумма операции": 45.5},  # другой месяц
+        {"Дата операции": "2024-01-20", "Сумма операции": -150.0},  # отрицательная сумма
+        {"Дата операции": "2024-01-25", "Сумма операции": 2499.50},
+    ]
+
+    result = investment_bank("2024-01", transactions, 50)
+    expected = (1750 - 1712.0) + (1000 - 999.99) + (2500 - 2499.50)  # 38.0  # 0.01  # 0.50  # Всего: 38.51
+    assert result == round(expected, 2)
+
+
 @pytest.mark.parametrize("invalid_month", ["2024", "2024-13", "24-01", "invalid"])
 def test_investment_bank_invalid_month(invalid_month):
     """Тестирование обработки некорректного формата месяца"""
@@ -75,20 +93,6 @@ def test_investment_bank_invalid_limit():
         investment_bank("2024-01", transactions, -50)
 
 
-def test_investment_bank_file():
-    """Тестирование работы с реальными данными из файла"""
-    # Читаем данные из файла
-    df = pd.read_excel("data/operations.xlsx")
-
-    # Преобразуем DataFrame в список словарей
-    transactions = df.to_dict("records")
-
-    # Проверяем работу с реальными данными
-    result = investment_bank("2024-01", transactions, 50)
-    assert isinstance(result, float)
-    assert result >= 0
-
-
 @pytest.mark.parametrize("limit", [10, 50, 100])
 def test_investment_bank_different_limits(limit):
     """Тестирование разных пределов округления"""
@@ -96,3 +100,13 @@ def test_investment_bank_different_limits(limit):
     result = investment_bank("2024-01", transactions, limit)
     assert isinstance(result, float)
     assert result >= 0
+
+
+def test_investment_bank_precision():
+    """Тестирование точности округления"""
+    transactions = [
+        {"Дата операции": "2024-01-15", "Сумма операции": 1999.99},
+        {"Дата операции": "2024-01-16", "Сумма операции": 45.01},
+    ]
+    result = investment_bank("2024-01", transactions, 50)
+    assert result == 5.0  # (2000 - 1999.99) + (50 - 45.01)
