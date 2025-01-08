@@ -1,7 +1,3 @@
-from datetime import datetime
-from unittest.mock import patch
-
-import pandas as pd
 import pytest
 
 from src.services import calculate_investment, investment_bank, round_amount
