@@ -85,7 +85,7 @@ def spending_by_category(
         date: Опциональная дата в формате 'YYYY-MM-DD'
 
     Returns:
-        DataFrame с тратами по категории
+        DataFrame с тратами по категории за последние 3 месяца
     """
     try:
         # Если дата не указана, используем текущую
@@ -94,7 +94,7 @@ def spending_by_category(
         else:
             target_date = datetime.strptime(date, '%Y-%m-%d')
 
-        # Рассчитываем дату три месяца назад
+        # Рассчитываем дату три месяца назад (90 дней)
         three_months_ago = target_date - timedelta(days=90)
 
         # Преобразуем столбец с датой в datetime, если это еще не сделано
@@ -107,10 +107,6 @@ def spending_by_category(
             (transactions['date'] <= target_date) &
             (transactions['category'] == category)
             ].copy()
-
-        # Если нет данных, возвращаем пустой DataFrame с нужной структурой
-        if filtered_df.empty:
-            return pd.DataFrame(columns=['date', 'category', 'amount', 'description'])
 
         # Сортируем по дате
         filtered_df = filtered_df.sort_values('date')
