@@ -1,261 +1,230 @@
-import logging
-import os
-import time
-from datetime import datetime
-from typing import List, Literal, TypedDict
-from xml.etree import ElementTree
-
+from typing import Dict, List, Union, Optional
+import json
 import pandas as pd
+from datetime import datetime, time
 import requests
+import logging
+from pathlib import Path
+import os
 from dotenv import load_dotenv
 
-from main import FILE_PATH
-
-GreetingType = Literal["Доброе утро", "Добрый день", "Добрый вечер", "Доброй ночи"]
-
-
-class CardInfo(TypedDict):
-    last_digits: str
-    total_spent: float
-    cashback: float
-
-
-class Transaction(TypedDict):
-    date: str
-    amount: float
-    category: str
-    description: str
-
-
-class CurrencyRate(TypedDict):
-    currency: str
-    rate: float
-
-
-class StockPrice(TypedDict):
-    stock: str
-    price: float
-
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
+# Load environment variables
+load_dotenv()
+API_KEY = os.getenv('API_KEY')
 
-def get_greeting(input_datetime: datetime) -> GreetingType:
-    hour = input_datetime.hour
-    if 5 <= hour < 12:
+
+def get_greeting(current_time: time) -> str:
+    """
+    Return appropriate greeting based on time of day.
+
+    Args:
+        current_time: Current time object
+
+    Returns:
+        str: Appropriate greeting message
+    """
+    if time(4, 0) <= current_time < time(12, 0):
         return "Доброе утро"
-    elif 12 <= hour < 17:
+    elif time(12, 0) <= current_time < time(16, 0):
         return "Добрый день"
-    elif 17 <= hour < 21:
+    elif time(16, 0) <= current_time < time(23, 0):
         return "Добрый вечер"
     else:
         return "Доброй ночи"
 
 
-def get_card_info() -> List[CardInfo]:
+def analyze_cards(df: pd.DataFrame) -> List[Dict[str, Union[str, float]]]:
+    """
+    Analyze card transactions and calculate totals and cashback.
+
+    Args:
+        df: DataFrame with transaction data
+
+    Returns:
+        List of dictionaries containing card analysis
+    """
+    cards_info = []
+
+    # Group by card number
+    for card_num in df['card'].unique():
+        card_df = df[df['card'] == card_num]
+        # Считаем сумму абсолютных значений всех транзакций
+        total_spent = sum(abs(amount) for amount in card_df['amount'])
+
+        # Calculate cashback (1 рубль на 100 рублей)
+        cashback = round(total_spent / 100, 2)
+
+        cards_info.append({
+            "last_digits": str(card_num)[-4:],
+            "total_spent": round(total_spent, 2),
+            "cashback": cashback
+        })
+
+    return cards_info
+
+
+def get_top_transactions(df: pd.DataFrame, n: int = 5) -> List[Dict[str, Union[str, float]]]:
+    """
+    Get top N transactions by amount.
+
+    Args:
+        df: DataFrame with transaction data
+        n: Number of top transactions to return
+
+    Returns:
+        List of dictionaries containing top transactions
+    """
+    # Проверяем, не пустой ли DataFrame
+    if df.empty:
+        return []
+
+    # Создаем копию DataFrame и преобразуем столбец amount в float
+    df_copy = df.copy()
+    df_copy['amount'] = df_copy['amount'].astype(float)
+
+    # Создаем столбец с абсолютными значениями, явно указывая тип float
+    df_copy['abs_amount'] = df_copy['amount'].abs().astype(float)
+
+    # Сортируем по абсолютным значениям и берем top N
+    top_df = df_copy.nlargest(n, 'abs_amount')
+
+    # Формируем результат
+    return [{
+        "date": row['date'].strftime('%d.%m.%Y'),
+        "amount": float(round(row['amount'], 2)),
+        "category": row['category'],
+        "description": row['description']
+    } for _, row in top_df.iterrows()]
+
+
+def get_currency_rates(currencies: List[str]) -> List[Dict[str, Union[str, float]]]:
+    """
+    Fetch current currency rates from API.
+
+    Args:
+        currencies: List of currency codes to fetch
+
+    Returns:
+        List of dictionaries containing currency rates
+    """
     try:
-        if not FILE_PATH.exists():
-            logger.error("Файл не найден")
-            raise FileNotFoundError("Файл transactions.xlsx отсутствует в директории data")
-
-        if FILE_PATH.suffix.lower() not in [".xlsx", ".xls"]:
-            logging.error("Неверный формат файла")
-            raise
-
-        df = pd.read_excel(FILE_PATH)
-        unique_cards = df["Номер карты"].unique()
-        cards_info = []
-
-        for card_number in unique_cards:
-            last_digits = str(card_number)[-4:]
-
-            card_transaction = df[(df["Номер карты"] == last_digits) & (df["Сумма платежа"] < 0)]
-            total_spent = float(abs(card_transaction["Сумма платежа"].sum()))
-
-            cashback = float(total_spent * 0.01)
-
-            card_info: CardInfo = {
-                "last_digits": str(last_digits),
-                "total_spent": float(total_spent),
-                "cashback": float(cashback),
-            }
-
-            cards_info.append(card_info)
-        return cards_info
-    except Exception as e:
-        logger.error(f"Ошибка при чтении файла транзакций: {str(e)}")
-        raise
-
-
-def get_top_transaction(input_datetime: datetime) -> List[Transaction]:
-    try:
-        df = pd.read_excel(FILE_PATH)
-        required_columns = {"Дата платежа", "Сумма платежа", "Категория", "Описание"}
-        if not required_columns.issubset(df.columns):
-            missing = required_columns - set(df.columns)
-            raise ValueError(f"В файле отсутствуют необходимые столбцы: {missing}")
-        df["Дата платежа"] = pd.to_datetime(df["Дата платежа"])
-        df = df[df["Дата платежа"] <= input_datetime]
-        df = df.sort_values("Сумма платежа", key=lambda x: abs(x), ascending=False).head(5)
-        top_transactions = []
-        for _, row in df.iterrows():
-            transaction: Transaction = {
-                "date": str(row["Дата платежа"].strftime("%d.%m.%h")),
-                "amount": float(row["Сумма платежа"]),
-                "category": str(row["Категория"]),
-                "description": str(row["Описание"]),
-            }
-            top_transactions.append(transaction)
-
-        return top_transactions
-    except Exception as e:
-        logger.error(f"ошибка при получении транзакции: {str(e)}")
-        raise
-
-
-def get_currency_rate(input_datetime: datetime) -> List[CurrencyRate]:
-    try:
-        date_str = input_datetime.strftime("%d/%m/%Y")
-        url = f"https://www.cbr.ru/scripts/XML_daily.asp?date_req={date_str}"
-        response = requests.get(url, timeout=10)
+        # Using Exchange Rates API as an example
+        base_url = "https://api.exchangerate-api.com/v4/latest/RUB"
+        response = requests.get(base_url)
         response.raise_for_status()
-        tree = ElementTree.fromstring(response.content)
-        currencies_is_interest = {"USD", "EUR"}
-        result = []
-        for valute in tree.findall("Valute"):
-            char_code = valute.find("CharCode")
-            if char_code is None or char_code.text is None:
-                logger.warning("Найден элемент Valute без кода валюты")
-                continue
 
-            if char_code in currencies_is_interest:
-                value_element = valute.find("Value")
-                if value_element is None or value_element.text is None:
-                    logger.warning(f"Для валюты {char_code} не найдено значение курса")
-                    continue
-                try:
-                    rate_str = value_element.text.replace(",", ".")
-                    rate = float(rate_str)
-                    currency_rate: CurrencyRate = {"currency": str(char_code), "rate": rate}
-                    result.append(currency_rate)
+        data = response.json()
+        rates = []
 
-                except ValueError as e:
-                    logger.warning(f"Не удалось преобразовать курс валюты {char_code}: {str(e)}")
-                    continue
+        for currency in currencies:
+            if currency in data['rates']:
+                rate = round(1 / data['rates'][currency], 2)  # Convert to RUB
+                rates.append({
+                    "currency": currency,
+                    "rate": rate
+                })
 
-        if len(result) != len(currencies_is_interest):
-            missing = currencies_is_interest - {r["currency"] for r in result}
-            logger.warning(f"Не удалось получить курсы для валют: {missing}")
-        return result
+        return rates
     except requests.RequestException as e:
-        logger.error(f"Ошибка при запросе к API ЦБ РФ: {e}")
-        raise
-    except ElementTree.ParseError as e:
-        logger.error(f"Ошибка при парсинге XML ответа: {str(e)}")
-        raise
-    except Exception as e:
-        logger.error(f"Непредвиденная ошибка при получении курсов валют: {str(e)}")
-        raise
+        logger.error(f"Error fetching currency rates: {e}")
+        return []
 
 
-load_dotenv()
-ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+def get_stock_prices(stocks: List[str]) -> List[Dict[str, Union[str, float]]]:
+    """
+    Fetch current stock prices from API.
 
-if not ALPHA_VANTAGE_API_KEY:
-    raise ValueError("API ключ Alpha Vantage не найден в переменных окружения")
+    Args:
+        stocks: List of stock symbols to fetch
 
-
-def get_stock_prices(input_datetime: datetime) -> List[StockPrice]:
+    Returns:
+        List of dictionaries containing stock prices
+    """
     try:
-        stock_of_interest = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
-        result = []
+        # Using Alpha Vantage API as an example
+        prices = []
+        for stock in stocks:
+            url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock}&apikey={API_KEY}"
+            response = requests.get(url)
+            response.raise_for_status()
 
-        base_url = "https://www.alphavantage.co/query"
-        logger.info(f"Начинаем получение цен акций на {input_datetime}")
+            data = response.json()
+            if "Global Quote" in data:
+                price = float(data["Global Quote"]["05. price"])
+                prices.append({
+                    "stock": stock,
+                    "price": round(price, 2)
+                })
 
-        for symbol in stock_of_interest:
-            try:
-                params = {"function": "GLOBAL_QUOTE", "symbol": symbol, "apikey": ALPHA_VANTAGE_API_KEY}
-                logger.debug(f"Запрашиваем данные для {symbol}")
-
-                response = requests.get(base_url, params=params, timeout=10)
-                response.raise_for_status()
-
-                data = response.json()
-
-                if "Global Quote" not in data:
-                    logger.warning(f"Неожиданный формат ответа для {symbol}: {data}")
-                    continue
-
-                quote_data = data["Global Quote"]
-
-                if "05. price" not in quote_data:
-                    logger.warning(f"Нет данных о цене для {symbol}")
-                    continue
-
-                try:
-                    price = float(quote_data["05. price"])
-
-                    stock_price: StockPrice = {"stock": str(symbol), "price": float(round(price, 2))}
-
-                    result.append(stock_price)
-                    logger.debug(f"Успешно получена цена для {symbol}: {price}")
-
-                except (ValueError, TypeError) as e:
-                    logger.error(f"Ошибка преобразования цены для {symbol}: {e}")
-                    continue
-
-                time.sleep(0.25)
-
-            except requests.RequestException as e:
-                logger.error(f"Ошибка запроса для {symbol}: {e}")
-                continue
-
-            if len(result) != len(stock_of_interest):
-                missing = set(stock_of_interest) - {s["stock"] for s in result}
-                logger.warning(f"Не удалось получить цены для следующих акций: {missing}")
-
-        return result
-
-    except Exception as e:
-        logger.error(f"Непредвиденная ошибка при получении цен акций: {str(e)}")
-        raise
+        return prices
+    except requests.RequestException as e:
+        logger.error(f"Error fetching stock prices: {e}")
+        return []
 
 
-def generate_report(datetime_str: str) -> dict:
+def load_user_settings() -> Dict[str, List[str]]:
+    """
+    Load user settings from JSON file.
+
+    Returns:
+        Dictionary containing user settings
+    """
     try:
-        input_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
-        report = {
-            "greeting": get_greeting(input_datetime),
-            "cards": get_card_info(),
-            "top_transactions": get_top_transaction(input_datetime),
-            "currency_rates": get_currency_rate(input_datetime),
-            "stocks_price": get_stock_prices(input_datetime),
-        }
+        with open('user_settings.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logger.error("user_settings.json not found")
+        return {"user_currencies": [], "user_stocks": []}
 
-        logger.info(
-            f"Отчет успешно сформирован для {datetime_str}. "
-            f"Получено {len(report['cards'])} карт, "
-            f"{len(report['top_transactions'])} транзакций, "
-            f"{len(report['currency_rates'])} курсов валют, "
-            f"{len(report['stock_prices'])} цен акций."
+
+def get_dashboard_data(datetime_str: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
+    """
+    Main function to generate dashboard data.
+
+    Args:
+        datetime_str: Input datetime string in format 'YYYY-MM-DD HH:MM:SS'
+
+    Returns:
+        Dictionary containing all dashboard data
+    """
+    try:
+        # Parse input datetime
+        current_datetime = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+
+        # Load user settings
+        settings = load_user_settings()
+
+        # Read and process operations data
+        operations_df = pd.read_excel(
+            Path('data/operations.xlsx'),
+            parse_dates=['date']
         )
 
-        return report
+        # Filter data for current month
+        month_start = current_datetime.replace(day=1, hour=0, minute=0, second=0)
+        month_data = operations_df[
+            (operations_df['date'] >= month_start) &
+            (operations_df['date'] <= current_datetime)
+            ]
 
-    except ValueError as e:
-        error_msg = f"Неверный формат даты/времени: {str(e)}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
+        # Generate response
+        response = {
+            "greeting": get_greeting(current_datetime.time()),
+            "cards": analyze_cards(month_data),
+            "top_transactions": get_top_transactions(month_data),
+            "currency_rates": get_currency_rates(settings["user_currencies"]),
+            "stock_prices": get_stock_prices(settings["user_stocks"])
+        }
 
-    except FileNotFoundError as e:
-        error_msg = f"Не найден файл с данными: {str(e)}"
-        logger.error(error_msg)
-        raise FileNotFoundError(error_msg)
+        return response
 
     except Exception as e:
-        error_msg = f"Ошибка при формировании отчета: {str(e)}"
-        logger.error(error_msg)
+        logger.error(f"Error generating dashboard data: {e}")
         raise
