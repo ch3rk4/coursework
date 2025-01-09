@@ -3,7 +3,7 @@ import pytest
 from src.services import calculate_investment, investment_bank, round_amount
 
 
-def test_round_amount():
+def test_round_amount() -> None:
     """Тестирование функции округления суммы"""
     assert round_amount(1712.0, 50) == 1750.0
     assert round_amount(1999.99, 100) == 2000.0
@@ -11,7 +11,7 @@ def test_round_amount():
     assert round_amount(100.0, 50) == 100.0
 
 
-def test_calculate_investment():
+def test_calculate_investment() -> None:
     """Тестирование расчета суммы для инвестирования"""
     assert calculate_investment(1712.0, 50) == 38.0
     assert calculate_investment(1999.99, 100) == 0.01
@@ -19,7 +19,7 @@ def test_calculate_investment():
     assert calculate_investment(100.0, 50) == 0.0
 
 
-def test_investment_bank_basic():
+def test_investment_bank_basic() -> None:
     """Базовое тестирование расчета инвестиций"""
     transactions = [
         {"Дата операции": "31.01.2024 16:44:00", "Сумма операции": 1712.0},
@@ -30,12 +30,12 @@ def test_investment_bank_basic():
     assert result == 42.5
 
 
-def test_investment_bank_empty():
+def test_investment_bank_empty() -> None:
     """Тестирование случая с пустым списком транзакций"""
     assert investment_bank("2024-01", [], 50) == 0.0
 
 
-def test_investment_bank_different_month():
+def test_investment_bank_different_month() -> None:
     """Тестирование фильтрации транзакций по месяцу"""
     transactions = [
         {"Дата операции": "15.01.2024 15:11:00", "Сумма операции": 1712.0},
@@ -46,7 +46,7 @@ def test_investment_bank_different_month():
     assert result == 38.0
 
 
-def test_investment_bank_negative_amounts():
+def test_investment_bank_negative_amounts() -> None:
     """Тестирование обработки отрицательных сумм"""
     transactions = [
         {"Дата операции": "15.01.2024 15:11:00", "Сумма операции": 1712.0},
@@ -57,7 +57,7 @@ def test_investment_bank_negative_amounts():
     assert result == 38.0
 
 
-def test_investment_bank_realistic_data():
+def test_investment_bank_realistic_data() -> None:
     """Тестирование на реалистичных данных"""
     transactions = [
         {"Дата операции": "15.01.2024 15:11:00", "Сумма операции": 1712.0},
@@ -73,14 +73,14 @@ def test_investment_bank_realistic_data():
 
 
 @pytest.mark.parametrize("invalid_month", ["2024", "2024-13", "24-01", "invalid"])
-def test_investment_bank_invalid_month(invalid_month):
+def test_investment_bank_invalid_month(invalid_month: str) -> None:
     """Тестирование обработки некорректного формата месяца"""
     transactions = [{"Дата операции": "15.01.2024 15:11:00", "Сумма операции": 1712.0}]
     with pytest.raises(ValueError):
         investment_bank(invalid_month, transactions, 50)
 
 
-def test_investment_bank_invalid_limit():
+def test_investment_bank_invalid_limit() -> None:
     """Тестирование обработки некорректного предела округления"""
     transactions = [{"Дата операции": "15.01.2024 15:11:00", "Сумма операции": 1712.0}]
     with pytest.raises(ValueError):
@@ -90,7 +90,7 @@ def test_investment_bank_invalid_limit():
 
 
 @pytest.mark.parametrize("limit", [10, 50, 100])
-def test_investment_bank_different_limits(limit):
+def test_investment_bank_different_limits(limit: int) -> None:
     """Тестирование разных пределов округления"""
     transactions = [{"Дата операции": "15.01.2024 15:11:00", "Сумма операции": 1712.0}]
     result = investment_bank("2024-01", transactions, limit)
@@ -98,7 +98,7 @@ def test_investment_bank_different_limits(limit):
     assert result >= 0
 
 
-def test_investment_bank_precision():
+def test_investment_bank_precision() -> None:
     """Тестирование точности округления"""
     transactions = [
         {"Дата операции": "15.01.2024 15:11:00", "Сумма операции": 1999.99},

@@ -1,9 +1,11 @@
+from typing import Dict, List
+
 import pandas as pd
 import pytest
 
 
 @pytest.fixture
-def sample_transactions_df():
+def sample_transactions_df() -> pd.DataFrame:
     """
     Создает тестовый набор данных транзакций.
     """
@@ -18,7 +20,7 @@ def sample_transactions_df():
 
 
 @pytest.fixture
-def cbr_xml_response():
+def cbr_xml_response() -> str:
     """
     Фикстура, предоставляющая тестовый XML-ответ от API ЦБ РФ.
     Содержит курсы USD и EUR с фиксированными значениями для тестирования.
@@ -43,7 +45,7 @@ def cbr_xml_response():
 
 
 @pytest.fixture
-def mock_user_settings():
+def mock_user_settings() -> Dict[str, List[str]]:
     """
     Фикстура с тестовыми пользовательскими настройками.
     """

@@ -144,8 +144,6 @@ def main() -> None:
         logger = logging.getLogger(__name__)
         logger.info("Запуск финансового приложения...")
 
-        # Загружаем пользовательские настройки
-        # settings = load_user_settings()
 
         # Путь к файлу операций
         operations_file = Path("data") / "operations.xlsx"
