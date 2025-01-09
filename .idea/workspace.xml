@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8ae744d-e3c4-4ec8-957e-71389da3f37d" name="Changes" comment="fix for flake8 and add results in flake8_results.txt">
+    <list default="true" id="a8ae744d-e3c4-4ec8-957e-71389da3f37d" name="Changes" comment="write README.md file">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/conftest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_services.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,6 +104,11 @@
     "git-widget-placeholder": "session-4"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\petys\PycharmProjects\coursework" />
+    </key>
+  </component>
   <component name="RunManager" selected="Python.main">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="coursework" />
@@ -415,7 +418,15 @@
       <option name="project" value="LOCAL" />
       <updated>1736420148755</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="fix for mypy and use pytest coverage">
+      <option name="closed" value="true" />
+      <created>1736421210111</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1736421210111</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -453,6 +464,8 @@
     <MESSAGE value="fixes all tests and funcs + write main.py" />
     <MESSAGE value="use black and isort" />
     <MESSAGE value="fix for flake8 and add results in flake8_results.txt" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix for flake8 and add results in flake8_results.txt" />
+    <MESSAGE value="fix for mypy and use pytest coverage" />
+    <MESSAGE value="write README.md file" />
+    <option name="LAST_COMMIT_MESSAGE" value="write README.md file" />
   </component>
 </project>
