@@ -1,6 +1,5 @@
 import pandas as pd
 import pytest
-from datetime import datetime
 
 
 @pytest.fixture
@@ -16,3 +15,36 @@ def sample_transactions_df():
         "description": ["Test transaction"] * 5,
     }
     return pd.DataFrame(data)
+
+
+@pytest.fixture
+def cbr_xml_response():
+    """
+    Фикстура, предоставляющая тестовый XML-ответ от API ЦБ РФ.
+    Содержит курсы USD и EUR с фиксированными значениями для тестирования.
+    """
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<ValCurs Date="09.01.2024" name="Foreign Currency Market">
+    <Valute ID="R01235">
+        <NumCode>840</NumCode>
+        <CharCode>USD</CharCode>
+        <Nominal>1</Nominal>
+        <Name>Доллар США</Name>
+        <Value>90,90</Value>
+    </Valute>
+    <Valute ID="R01239">
+        <NumCode>978</NumCode>
+        <CharCode>EUR</CharCode>
+        <Nominal>1</Nominal>
+        <Name>Евро</Name>
+        <Value>100,00</Value>
+    </Valute>
+</ValCurs>"""
+
+
+@pytest.fixture
+def mock_user_settings():
+    """
+    Фикстура с тестовыми пользовательскими настройками.
+    """
+    return {"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL"]}

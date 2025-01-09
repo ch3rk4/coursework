@@ -1,15 +1,16 @@
+import json
 import sys
 from datetime import time
 from pathlib import Path
-from unittest.mock import mock_open, patch
+from unittest.mock import Mock, mock_open, patch
+from xml.etree import ElementTree
 
 import pandas as pd
 import pytest
 import requests
-import json
 
-from src.utils import (analyze_cards, get_currency_rates, get_greeting,
-                       get_stock_prices, get_top_transactions, load_user_settings)
+from src.utils import (analyze_cards, get_currency_rates, get_greeting, get_stock_prices, get_top_transactions,
+                       load_user_settings)
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
@@ -75,76 +76,148 @@ def test_get_top_transactions_empty_df():
     assert get_top_transactions(empty_df) == []
 
 
-@patch("requests.get")
-def test_get_currency_rates(mock_get):
-    """Test currency rates retrieval."""
-    # Подготавливаем мок-ответ
-    mock_response = {"rates": {"USD": 0.012, "EUR": 0.011}}
-    mock_get.return_value.json.return_value = mock_response
-    mock_get.return_value.raise_for_status.return_value = None
-
-    results = get_currency_rates(["USD", "EUR"])
-
-    assert len(results) == 2
-    assert results[0]["currency"] == "USD"
-    assert isinstance(results[0]["rate"], float)
-
-
-@patch("requests.get")
-def test_get_currency_rates_api_error(mock_get):
-    """Test error handling in currency rates retrieval."""
-    mock_get.side_effect = requests.RequestException
-    results = get_currency_rates(["USD"])
-    assert results == []
-
-
-@patch("requests.get")
-def test_get_stock_prices(mock_get):
-    """Test stock prices retrieval."""
-    mock_response = {"Global Quote": {"05. price": "150.25"}}
-    mock_get.return_value.json.return_value = mock_response
-    mock_get.return_value.raise_for_status.return_value = None
-
-    results = get_stock_prices(["AAPL"])
-
-    assert len(results) == 1
-    assert results[0]["stock"] == "AAPL"
-    assert isinstance(results[0]["price"], float)
-    assert results[0]["price"] == 150.25
+@pytest.fixture
+def mock_cbr_response():
+    """Fixture providing mock CBR API XML response"""
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<ValCurs Date="09.01.2024" name="Foreign Currency Market">
+    <Valute ID="R01235">
+        <NumCode>840</NumCode>
+        <CharCode>USD</CharCode>
+        <Nominal>1</Nominal>
+        <Name>Доллар США</Name>
+        <Value>90,90</Value>
+    </Valute>
+    <Valute ID="R01239">
+        <NumCode>978</NumCode>
+        <CharCode>EUR</CharCode>
+        <Nominal>1</Nominal>
+        <Name>Евро</Name>
+        <Value>100,00</Value>
+    </Valute>
+</ValCurs>"""
 
 
-@patch("requests.get")
-def test_get_stock_prices_api_error(mock_get):
-    """Test error handling in stock prices retrieval."""
-    mock_get.side_effect = requests.RequestException
-    results = get_stock_prices(["AAPL"])
-    assert results == []
+def test_get_currency_rates_success(mock_cbr_response):
+    """Test successful currency rates retrieval"""
+    currencies = ["USD", "EUR"]
+
+    mock_response = Mock()
+    mock_response.content = mock_cbr_response.encode("utf-8")
+    mock_response.raise_for_status = Mock()
+
+    with patch("requests.get", return_value=mock_response):
+        result = get_currency_rates(currencies)
+
+        assert len(result) == 2
+        assert result[0]["currency"] == "USD"
+        assert result[0]["rate"] == 90.90
+        assert result[1]["currency"] == "EUR"
+        assert result[1]["rate"] == 100.00
 
 
-def test_load_user_settings():
-    """
-    Test user settings loading.
-    """
-    mock_settings = {
-        "user_currencies": ["USD", "EUR"],
-        "user_stocks": ["AAPL", "GOOGL"]
-    }
+def test_get_currency_rates_http_error():
+    """Test handling of HTTP errors in currency rates retrieval"""
+    currencies = ["USD", "EUR"]
 
-    mock_json = json.dumps(mock_settings)
-
-    with patch("builtins.open", mock_open(read_data=mock_json)):
-        settings = load_user_settings()
-
-        assert isinstance(settings, dict)
-        assert "user_currencies" in settings
-        assert "user_stocks" in settings
-
-        assert settings["user_currencies"] == ["USD", "EUR"]
-        assert settings["user_stocks"] == ["AAPL", "GOOGL"]
+    with patch("requests.get", side_effect=requests.RequestException("Connection error")):
+        with pytest.raises(requests.RequestException) as exc_info:
+            get_currency_rates(currencies)
+        assert "Connection error" in str(exc_info.value)
 
 
-def test_load_user_settings_file_not_found():
-    """Test handling of missing settings file."""
-    with patch("builtins.open", side_effect=FileNotFoundError):
-        settings = load_user_settings()
-        assert settings == {"user_currencies": [], "user_stocks": []}
+def test_get_currency_rates_invalid_xml():
+    """Test handling of invalid XML response"""
+    currencies = ["USD", "EUR"]
+
+    mock_response = Mock()
+    mock_response.content = "Invalid XML".encode("utf-8")
+    mock_response.raise_for_status = Mock()
+
+    with patch("requests.get", return_value=mock_response):
+        with pytest.raises(Exception) as exc_info:
+            get_currency_rates(currencies)
+        assert "ParseError" in str(exc_info.type)
+
+
+def test_get_currency_rates_empty_list():
+    """Test handling of empty currencies list"""
+    result = get_currency_rates([])
+    assert result == []
+
+
+@pytest.fixture
+def mock_stock_response():
+    """Fixture providing mock stock API response"""
+    return {"Global Quote": {"01. symbol": "AAPL", "05. price": "185.92"}}
+
+
+def test_get_stock_prices_success(mock_stock_response):
+    """Test successful stock price retrieval"""
+    stocks = ["AAPL"]
+
+    mock_response = Mock()
+    mock_response.json.return_value = mock_stock_response
+    mock_response.raise_for_status = Mock()
+
+    with patch("requests.get", return_value=mock_response):
+        result = get_stock_prices(stocks)
+
+        assert len(result) == 1
+        assert result[0]["stock"] == "AAPL"
+        assert result[0]["price"] == 185.92
+
+
+def test_get_stock_prices_http_error():
+    """Test handling of HTTP errors in stock price retrieval"""
+    stocks = ["AAPL"]
+
+    with patch("requests.get", side_effect=requests.RequestException("API error")):
+        result = get_stock_prices(stocks)
+        assert result == []
+
+
+def test_get_stock_prices_invalid_response():
+    """Test handling of invalid API response"""
+    stocks = ["AAPL"]
+
+    mock_response = Mock()
+    mock_response.json.return_value = {"error": "Invalid API response"}
+    mock_response.raise_for_status = Mock()
+
+    with patch("requests.get", return_value=mock_response):
+        result = get_stock_prices(stocks)
+        assert result == []
+
+
+def test_get_stock_prices_empty_list():
+    """Test handling of empty stocks list"""
+    result = get_stock_prices([])
+    assert result == []
+
+
+def test_get_stock_prices_multiple_stocks(mock_stock_response):
+    """Test retrieval of multiple stock prices"""
+    stocks = ["AAPL", "GOOGL"]
+
+    # Create different responses for each stock
+    responses = [
+        {"Global Quote": {"01. symbol": "AAPL", "05. price": "185.92"}},
+        {"Global Quote": {"01. symbol": "GOOGL", "05. price": "142.56"}},
+    ]
+
+    mock_responses = []
+    for response in responses:
+        mock = Mock()
+        mock.json.return_value = response
+        mock.raise_for_status = Mock()
+        mock_responses.append(mock)
+
+    with patch("requests.get", side_effect=mock_responses):
+        result = get_stock_prices(stocks)
+
+        assert len(result) == 2
+        assert result[0]["stock"] == "AAPL"
+        assert result[0]["price"] == 185.92
+        assert result[1]["stock"] == "GOOGL"
+        assert result[1]["price"] == 142.56

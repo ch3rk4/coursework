@@ -1,216 +1,134 @@
 import sys
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
+import pandas as pd
 import pytest
-import requests
+
 from src.views import get_dashboard_data
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 
-@patch("src.utils.get_currency_rates")
-@patch("src.utils.get_stock_prices")
-def test_get_dashboard_data(mock_stocks, mock_currency, sample_transactions_df):
-    """
-    Тестирование основной функции генерации данных дашборда.
-    """
-    # Настраиваем ожидаемые ответы от моков
-    mock_currency.return_value = [{"currency": "USD", "rate": 75.0}]
-    mock_stocks.return_value = [{"stock": "AAPL", "price": 150.0}]
-
-    # Создаем контекст тестирования, подменяя внешние зависимости
-    with patch("pandas.read_excel", return_value=sample_transactions_df), \
-            patch("src.utils.load_user_settings",
-                  return_value={"user_currencies": ["USD"], "user_stocks": ["AAPL"]}):
-        # Вызываем тестируемую функцию
-        result = get_dashboard_data("2023-01-15 14:30:00")
-
-        # Проверяем структуру и содержимое ответа
-        assert isinstance(result, dict), "Результат должен быть словарем"
-
-        # Проверяем наличие всех необходимых ключей
-        expected_keys = {"greeting", "cards", "top_transactions", "currency_rates", "stock_prices"}
-        assert set(result.keys()) == expected_keys, f"Отсутствуют ожидаемые ключи: {expected_keys - set(result.keys())}"
-
-        # Проверяем типы данных в ответе
-        assert isinstance(result["greeting"], str), "Приветствие должно быть строкой"
-        assert isinstance(result["cards"], list), "Информация о картах должна быть списком"
-        assert isinstance(result["top_transactions"], list), "Топ транзакций должен быть списком"
-        assert isinstance(result["currency_rates"], list), "Курсы валют должны быть списком"
-        assert isinstance(result["stock_prices"], list), "Цены акций должны быть списком"
-
-
-def test_get_dashboard_data_invalid_input():
-    """
-    Тестирование обработки некорректных входных данных.
-    """
-    with pytest.raises(ValueError, match="time data .* does not match format.*"):
-        get_dashboard_data("invalid-date-format")
-
-
+@pytest.fixture
+def mock_settings():
+    """Фикстура, имитирующая пользовательские настройки"""
+    return {"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL", "GOOGL"]}
 
 
 @pytest.fixture
-def mock_exchange_rates_response():
-    """
-    Создает мок ответа от API курсов валют.
-    Эмулирует успешный ответ от Exchange Rates API с заранее определенными курсами валют.
-    """
-    return {
-        "base": "RUB",
-        "date": "2024-01-09",
-        "rates": {
-            "USD": 0.011,  # примерно 90.90 RUB за 1 USD
-            "EUR": 0.010,  # примерно 100 RUB за 1 EUR
-        }
+def mock_operations_df():
+    """Фикстура, представляющая примеры операций DataFrame"""
+    data = {
+        "date": pd.date_range("2024-01-01", periods=5),
+        "card": ["1234"] * 3 + ["5678"] * 2,
+        "amount": [100, -50, 200, 300, -150],
+        "category": ["Shopping"] * 5,
+        "description": ["Test transaction"] * 5,
     }
+    return pd.DataFrame(data)
 
 
-@pytest.fixture
-def mock_stock_quote_response():
-    """
-    Создает мок ответа от API котировок акций.
-    Эмулирует успешный ответ от Alpha Vantage API с информацией о ценах акций.
-    """
-    return {
-        "Global Quote": {
-            "01. symbol": "AAPL",
-            "02. open": "185.0000",
-            "03. high": "186.7400",
-            "04. low": "184.2500",
-            "05. price": "185.5600",
-            "06. volume": "48748435",
-            "07. latest trading day": "2024-01-09",
-            "08. previous close": "184.5800",
-            "09. change": "0.9800",
-            "10. change percent": "0.5309%"
-        }
-    }
+def test_get_dashboard_data_success(mock_settings, mock_operations_df):
+    """Тестирование успешного создания данных панели мониторинга со всеми компонентами"""
+    test_datetime = "2024-01-15 12:00:00"
+
+    # Mock all external function calls
+    with patch("src.views.load_user_settings", return_value=mock_settings), patch(
+        "pandas.read_excel", return_value=mock_operations_df
+    ), patch("src.views.get_greeting", return_value="Добрый день"), patch(
+        "src.views.analyze_cards",
+        return_value=[
+            {"last_digits": "1234", "total_spent": 350.0, "cashback": 3.50},
+            {"last_digits": "5678", "total_spent": 450.0, "cashback": 4.50},
+        ],
+    ), patch(
+        "src.views.get_top_transactions",
+        return_value=[
+            {"date": "15.01.2024", "amount": 300.0, "category": "Shopping", "description": "Test transaction"}
+        ],
+    ), patch(
+        "src.views.get_currency_rates",
+        return_value=[{"currency": "USD", "rate": 90.5}, {"currency": "EUR", "rate": 98.7}],
+    ), patch(
+        "src.views.get_stock_prices",
+        return_value=[{"stock": "AAPL", "price": 185.92}, {"stock": "GOOGL", "price": 142.56}],
+    ):
+        result = get_dashboard_data(test_datetime)
+
+        assert isinstance(result, dict)
+        assert "greeting" in result
+        assert "cards" in result
+        assert "top_transactions" in result
+        assert "currency_rates" in result
+        assert "stock_prices" in result
+
+        assert result["greeting"] == "Добрый день"
+        assert len(result["cards"]) == 2
+        assert len(result["top_transactions"]) == 1
+        assert len(result["currency_rates"]) == 2
+        assert len(result["stock_prices"]) == 2
 
 
-def test_get_dashboard_data_successful_api_calls(
-        sample_transactions_df,
-        mock_exchange_rates_response,
-        mock_stock_quote_response
-):
-    """
-    Тестирует успешное получение данных дашборда с эмуляцией API-вызовов.
-    """
-    rates_response = {
-        "rates": {
-            "USD": 0.011,  # Примерно 90.90 RUB за 1 USD
-            "EUR": 0.010  # Примерно 100 RUB за 1 EUR
-        }
-    }
+def test_get_dashboard_data_file_not_found():
+    """Тестовая обработка отсутствующего файла операций"""
+    test_datetime = "2024-01-15 12:00:00"
 
-    def mock_get(url, *args, **kwargs):
-        """
-        Мок-функция для requests.get, возвращающая подготовленные ответы в зависимости от URL.
-        """
-        print(f"\nОтладка: Запрос к URL: {url}")
-
-        mock_response = Mock()
-        mock_response.raise_for_status.return_value = None
-        mock_response.status_code = 200
-
-        if "api.exchangerate-api.com/v4/latest/RUB" in url:
-            print("Отладка: Подготавливаем ответ для курсов валют")
-            mock_response.json.return_value = rates_response
-            print(f"Отладка: Отправляем ответ: {rates_response}")
-            return mock_response
-        elif "alphavantage.co" in url:
-            print("Отладка: Подготавливаем ответ для акций")
-            mock_response.json.return_value = mock_stock_quote_response
-            return mock_response
-
-        print(f"Предупреждение: Неизвестный URL: {url}")
-        return mock_response
-
-    with patch("src.utils.requests.get", side_effect=mock_get), \
-            patch("pandas.read_excel", return_value=sample_transactions_df), \
-            patch("src.utils.load_user_settings",
-                  return_value={"user_currencies": ["USD", "EUR"], "user_stocks": ["AAPL"]}):
-
-        result = get_dashboard_data("2024-01-09 14:30:00")
-
-        print("\nОтладка: Результат запроса:")
-        print("Курсы валют:", result["currency_rates"])
-        print("Цены акций:", result["stock_prices"])
-
-        # Проверяем наличие и формат курсов валют
-        currency_rates = result["currency_rates"]
-        assert len(currency_rates) == 2, (
-            f"Ожидается два курса валют (USD и EUR), получено: {len(currency_rates)}. "
-            f"Содержимое currency_rates: {currency_rates}"
-        )
-
-        # Проверяем каждый курс отдельно
-        currencies = {rate["currency"]: rate["rate"] for rate in currency_rates}
-        assert "USD" in currencies, "Отсутствует курс USD"
-        assert "EUR" in currencies, "Отсутствует курс EUR"
-
-        # Проверяем правильность расчета курсов
-        assert abs(currencies["USD"] - 90.90) < 0.1, f"Неверный курс USD: {currencies['USD']}"
-        assert abs(currencies["EUR"] - 100.0) < 0.1, f"Неверный курс EUR: {currencies['EUR']}"
+    with patch("src.views.load_user_settings", return_value={"user_currencies": [], "user_stocks": []}), patch(
+        "pandas.read_excel", side_effect=FileNotFoundError
+    ):
+        with pytest.raises(FileNotFoundError):
+            get_dashboard_data(test_datetime)
 
 
-def test_get_dashboard_data_api_errors(sample_transactions_df):
-    """
-    Тестирует обработку ошибок API при получении данных дашборда.
+def test_get_dashboard_data_invalid_date():
+    """Тестовая обработка недопустимого формата даты и времени"""
+    test_datetime = "invalid_date"
 
-    Проверяет корректную обработку различных ошибок API:
-    - Ошибка сети при запросе курсов валют
-    - Некорректный ответ от API акций
-    - Таймаут соединения
-    """
-
-    def raise_request_exception(*args, **kwargs):
-        raise requests.RequestException("API connection failed")
-
-    # Применяем патчи с эмуляцией ошибок
-    with patch("requests.get", side_effect=raise_request_exception), \
-            patch("pandas.read_excel", return_value=sample_transactions_df), \
-            patch("src.utils.load_user_settings",
-                  return_value={"user_currencies": ["USD"], "user_stocks": ["AAPL"]}):
-        result = get_dashboard_data("2024-01-09 14:30:00")
-
-        # Проверяем, что функция корректно обрабатывает ошибки
-        assert result["currency_rates"] == []
-        assert result["stock_prices"] == []
-        # Проверяем, что остальные данные доступны несмотря на ошибки API
-        assert result["greeting"]
-        assert result["cards"]
-        assert result["top_transactions"]
+    with pytest.raises(ValueError):
+        get_dashboard_data(test_datetime)
 
 
-@pytest.mark.parametrize("api_response,expected_error", [
-    ({"error": "Invalid API key"}, "Invalid API response format"),
-    (None, "API returned no data"),
-    ({}, "Missing required data in API response")
-])
-def test_get_dashboard_data_invalid_api_responses(
-        sample_transactions_df,
-        api_response,
-        expected_error
-):
-    """
-    Тестирует обработку некорректных ответов от API.
+def test_get_dashboard_data_api_error(mock_settings, mock_operations_df):
+    """Тестовая обработка сбоев API"""
+    test_datetime = "2024-01-15 12:00:00"
 
-    Проверяет различные сценарии некорректных ответов от API
-    и убеждается, что функция корректно их обрабатывает.
-    """
-    mock_response = Mock()
-    mock_response.raise_for_status.return_value = None
-    mock_response.json.return_value = api_response
+    with patch("src.views.load_user_settings", return_value=mock_settings), patch(
+        "pandas.read_excel", return_value=mock_operations_df
+    ), patch("src.views.get_greeting", return_value="Добрый день"), patch(
+        "src.views.analyze_cards", return_value=[]
+    ), patch(
+        "src.views.get_top_transactions", return_value=[]
+    ), patch(
+        "src.views.get_currency_rates", side_effect=Exception("API Error")
+    ), patch(
+        "src.views.get_stock_prices", return_value=[]
+    ):
+        with pytest.raises(Exception) as exc_info:
+            get_dashboard_data(test_datetime)
 
-    with patch("requests.get", return_value=mock_response), \
-            patch("pandas.read_excel", return_value=sample_transactions_df), \
-            patch("src.utils.load_user_settings",
-                  return_value={"user_currencies": ["USD"], "user_stocks": ["AAPL"]}):
-        result = get_dashboard_data("2024-01-09 14:30:00")
+        assert "API Error" in str(exc_info.value)
 
-        # Проверяем, что функция вернула пустые списки при некорректных ответах
-        assert result["currency_rates"] == []
-        assert result["stock_prices"] == []
+
+def test_get_dashboard_data_empty_dataframe(mock_settings):
+    """Тестовая обработка пустых операций DataFrame"""
+    test_datetime = "2024-01-15 12:00:00"
+    empty_df = pd.DataFrame(columns=["date", "card", "amount", "category", "description"])
+
+    with patch("src.views.load_user_settings", return_value=mock_settings), patch(
+        "pandas.read_excel", return_value=empty_df
+    ), patch("src.views.get_greeting", return_value="Добрый день"), patch(
+        "src.views.analyze_cards", return_value=[]
+    ), patch(
+        "src.views.get_top_transactions", return_value=[]
+    ), patch(
+        "src.views.get_currency_rates", return_value=[]
+    ), patch(
+        "src.views.get_stock_prices", return_value=[]
+    ):
+        result = get_dashboard_data(test_datetime)
+
+        assert isinstance(result, dict)
+        assert result["cards"] == []
+        assert result["top_transactions"] == []

@@ -53,21 +53,17 @@ def test_spending_by_category_basic(sample_transactions, clean_reports_dir):
     """
     result = spending_by_category(sample_transactions, "Продукты")
 
-    # Проверяем количество транзакций
     assert len(result) == 5, f"Ожидалось 5 транзакций, получено {len(result)}"
 
-    # Дополнительные проверки
     assert all(
         row["category"] == "Продукты" for _, row in result.iterrows()
     ), "Все транзакции должны быть категории 'Продукты'"
 
-    # Проверяем, что даты в пределах 3 месяцев
     dates = pd.to_datetime(result["date"])
     assert (
         dates.max() - dates.min()
     ).days <= 90, "Период между первой и последней транзакцией не должен превышать 90 дней"
 
-    # Проверяем сортировку по дате
     assert list(dates) == list(sorted(dates)), "Результаты должны быть отсортированы по дате"
 
 
@@ -79,7 +75,6 @@ def clean_reports_dir():
         shutil.rmtree(reports_dir)
     reports_dir.mkdir()
     yield reports_dir
-    # Очищаем после теста
     shutil.rmtree(reports_dir)
 
 
@@ -112,11 +107,9 @@ def test_save_report_default_filename(clean_reports_dir):
 
     dummy_report()
 
-    # Проверяем, что файл создан
     files = list(clean_reports_dir.glob("dummy_report_*.json"))
     assert len(files) == 1
 
-    # Проверяем содержимое файла
     with open(files[0], "r", encoding="utf-8") as f:
         data = json.load(f)
         assert data == {"test": "data"}
@@ -165,7 +158,6 @@ def test_invalid_date_format(sample_transactions, clean_reports_dir):
 
 def test_report_directory_creation(clean_reports_dir):
     """Тестирование создания директории для отчетов"""
-    # Удаляем директорию перед тестом
     shutil.rmtree(clean_reports_dir)
 
     @save_report("test_report")

@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_dashboard_data(datetime_str: str) -> Dict[str, Union[str, List[Dict[str, Union[str, float]]]]]:
-    """
-    Main function to generate dashboard data.
-    """
+    """Генерация данных панели мониторинга"""
     try:
         current_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
 
