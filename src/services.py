@@ -30,7 +30,7 @@ def investment_bank(month: str, transactions: List[Dict[str, Any]], limit: int) 
         total_investment = 0.0
 
         for transaction in transactions:
-            trans_date = datetime.strptime(transaction["Дата операции"], "%Y-%m-%d")
+            trans_date = datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S")
             if trans_date.year == target_date.year and trans_date.month == target_date.month:
                 amount = float(transaction["Сумма операции"])
 

@@ -21,11 +21,11 @@ def mock_settings():
 def mock_operations_df():
     """Фикстура, представляющая примеры операций DataFrame"""
     data = {
-        "date": pd.date_range("2024-01-01", periods=5),
-        "card": ["1234"] * 3 + ["5678"] * 2,
-        "amount": [100, -50, 200, 300, -150],
-        "category": ["Shopping"] * 5,
-        "description": ["Test transaction"] * 5,
+        "Дата платежа": pd.date_range("2024-01-01", periods=5),
+        "Номер карты": ["1234"] * 3 + ["5678"] * 2,
+        "Сумма платежа": [100, -50, 200, 300, -150],
+        "Категория": ["Shopping"] * 5,
+        "Описание": ["Test transaction"] * 5,
     }
     return pd.DataFrame(data)
 
@@ -46,7 +46,8 @@ def test_get_dashboard_data_success(mock_settings, mock_operations_df):
     ), patch(
         "src.views.get_top_transactions",
         return_value=[
-            {"date": "15.01.2024", "amount": 300.0, "category": "Shopping", "description": "Test transaction"}
+            {"Дата платежа": "15.01.2024", "Сумма платежа": 300.0, "Категория": "Shopping",
+             "Описание": "Test transaction"}
         ],
     ), patch(
         "src.views.get_currency_rates",
@@ -114,7 +115,7 @@ def test_get_dashboard_data_api_error(mock_settings, mock_operations_df):
 def test_get_dashboard_data_empty_dataframe(mock_settings):
     """Тестовая обработка пустых операций DataFrame"""
     test_datetime = "2024-01-15 12:00:00"
-    empty_df = pd.DataFrame(columns=["date", "card", "amount", "category", "description"])
+    empty_df = pd.DataFrame(columns=["Дата платежа", "Номер карты", "Сумма платежа", "Категория", "Описание"])
 
     with patch("src.views.load_user_settings", return_value=mock_settings), patch(
         "pandas.read_excel", return_value=empty_df

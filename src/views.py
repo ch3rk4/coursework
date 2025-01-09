@@ -18,11 +18,11 @@ def get_dashboard_data(datetime_str: str) -> Dict[str, Union[str, List[Dict[str,
         current_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
 
         settings = load_user_settings()
-        operations_df = pd.read_excel(Path("data/operations.xlsx"), parse_dates=["date"])
+        operations_df = pd.read_excel(Path("data/operations.xlsx"), parse_dates=["Дата платежа"])
 
         month_start = current_datetime.replace(day=1, hour=0, minute=0, second=0)
         month_data = operations_df[
-            (operations_df["date"] >= month_start) & (operations_df["date"] <= current_datetime)
+            (operations_df["Дата платежа"] >= month_start) & (operations_df["Дата платежа"] <= current_datetime)
         ]
 
         response = {

@@ -1,16 +1,13 @@
-import json
 import sys
 from datetime import time
 from pathlib import Path
-from unittest.mock import Mock, mock_open, patch
-from xml.etree import ElementTree
+from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
 import requests
 
-from src.utils import (analyze_cards, get_currency_rates, get_greeting, get_stock_prices, get_top_transactions,
-                       load_user_settings)
+from src.utils import (analyze_cards, get_currency_rates, get_greeting, get_stock_prices, get_top_transactions)
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
@@ -18,19 +15,19 @@ sys.path.insert(0, str(project_root))
 
 @pytest.fixture
 def sample_transactions_df():
-    """Create a sample DataFrame for testing."""
+    """Создание образца DataFrame для тестирования"""
     data = {
-        "date": pd.date_range("2023-01-01", periods=5),
-        "card": ["1234567890123456"] * 3 + ["9876543210987654"] * 2,
-        "amount": [100, -50, 200, 300, -150],
-        "category": ["Shopping"] * 5,
-        "description": ["Test transaction"] * 5,
+        "Дата платежа": pd.date_range("2023-01-01", periods=5),
+        "Номер карты": ["1234567890123456"] * 3 + ["9876543210987654"] * 2,
+        "Сумма платежа": [100, -50, 200, 300, -150],
+        "Категория": ["Shopping"] * 5,
+        "Описание": ["Test transaction"] * 5,
     }
     return pd.DataFrame(data)
 
 
 def test_get_greeting():
-    """Test greeting generation for different times of day."""
+    """Тестирование приветствия для разного времени"""
     assert get_greeting(time(6, 0)) == "Доброе утро"
     assert get_greeting(time(13, 0)) == "Добрый день"
     assert get_greeting(time(17, 0)) == "Добрый вечер"
@@ -38,47 +35,43 @@ def test_get_greeting():
 
 
 def test_analyze_cards(sample_transactions_df):
-    """Test card analysis functionality."""
+    """Tест функционала анализа карты"""
     results = analyze_cards(sample_transactions_df)
 
     assert len(results) == 2  # Should have two unique cards
 
-    # Test first card
     assert results[0]["last_digits"] == "3456"
     assert results[0]["total_spent"] == 350.0  # |100| + |-50| + |200|
     assert results[0]["cashback"] == 3.50
 
-    # Test second card
     assert results[1]["last_digits"] == "7654"
     assert results[1]["total_spent"] == 450.0  # |300| + |-150|
     assert results[1]["cashback"] == 4.50
 
 
 def test_get_top_transactions(sample_transactions_df):
-    """Test top transactions retrieval."""
+    """Тестирование извлечения основных транзакций"""
     results = get_top_transactions(sample_transactions_df, n=3)
 
     assert len(results) == 3
-    # Проверяем формат данных в ответе
-    assert isinstance(results[0]["date"], str)
-    assert isinstance(results[0]["amount"], float)
-    assert "category" in results[0]
-    assert "description" in results[0]
+    assert isinstance(results[0]["Дата платежа"], str)
+    assert isinstance(results[0]["Сумма платежа"], float)
+    assert "Категория" in results[0]
+    assert "Описание" in results[0]
 
-    # Проверяем сортировку по абсолютной величине
-    amounts = [abs(r["amount"]) for r in results]
+    amounts = [abs(r["Сумма платежа"]) for r in results]
     assert amounts == sorted(amounts, reverse=True)
 
 
 def test_get_top_transactions_empty_df():
-    """Test handling of empty DataFrame."""
-    empty_df = pd.DataFrame(columns=["date", "card", "amount", "category", "description"])
+    """Тестовая обработка пустого DataFrame"""
+    empty_df = pd.DataFrame(columns=["Дата платежа", "Номер карты", "Сумма платежа", "Категория", "Описание"])
     assert get_top_transactions(empty_df) == []
 
 
 @pytest.fixture
 def mock_cbr_response():
-    """Fixture providing mock CBR API XML response"""
+    """Фикстура, обеспечивающая фиктивный ответ CBR API XML"""
     return """<?xml version="1.0" encoding="UTF-8"?>
 <ValCurs Date="09.01.2024" name="Foreign Currency Market">
     <Valute ID="R01235">
@@ -99,7 +92,7 @@ def mock_cbr_response():
 
 
 def test_get_currency_rates_success(mock_cbr_response):
-    """Test successful currency rates retrieval"""
+    """Тест успешного получения курсов валют"""
     currencies = ["USD", "EUR"]
 
     mock_response = Mock()
@@ -117,7 +110,7 @@ def test_get_currency_rates_success(mock_cbr_response):
 
 
 def test_get_currency_rates_http_error():
-    """Test handling of HTTP errors in currency rates retrieval"""
+    """Тестовая обработка ошибок HTTP при получении курсов валют"""
     currencies = ["USD", "EUR"]
 
     with patch("requests.get", side_effect=requests.RequestException("Connection error")):
@@ -127,7 +120,7 @@ def test_get_currency_rates_http_error():
 
 
 def test_get_currency_rates_invalid_xml():
-    """Test handling of invalid XML response"""
+    """Тестовая обработка недопустимого ответа XML"""
     currencies = ["USD", "EUR"]
 
     mock_response = Mock()
@@ -141,19 +134,19 @@ def test_get_currency_rates_invalid_xml():
 
 
 def test_get_currency_rates_empty_list():
-    """Test handling of empty currencies list"""
+    """Тестовая обработка пустого списка валют"""
     result = get_currency_rates([])
     assert result == []
 
 
 @pytest.fixture
 def mock_stock_response():
-    """Fixture providing mock stock API response"""
+    """Фикстура, обеспечивающая ответ API фиктивного запаса"""
     return {"Global Quote": {"01. symbol": "AAPL", "05. price": "185.92"}}
 
 
 def test_get_stock_prices_success(mock_stock_response):
-    """Test successful stock price retrieval"""
+    """Тест успешного извлечения цен акций"""
     stocks = ["AAPL"]
 
     mock_response = Mock()
@@ -169,7 +162,7 @@ def test_get_stock_prices_success(mock_stock_response):
 
 
 def test_get_stock_prices_http_error():
-    """Test handling of HTTP errors in stock price retrieval"""
+    """Тестовая обработка ошибок HTTP при извлечении цен на акции"""
     stocks = ["AAPL"]
 
     with patch("requests.get", side_effect=requests.RequestException("API error")):
@@ -178,7 +171,7 @@ def test_get_stock_prices_http_error():
 
 
 def test_get_stock_prices_invalid_response():
-    """Test handling of invalid API response"""
+    """Тестовая обработка недопустимого ответа API"""
     stocks = ["AAPL"]
 
     mock_response = Mock()
@@ -191,16 +184,15 @@ def test_get_stock_prices_invalid_response():
 
 
 def test_get_stock_prices_empty_list():
-    """Test handling of empty stocks list"""
+    """Тестовая обработка пустого списка запасов"""
     result = get_stock_prices([])
     assert result == []
 
 
 def test_get_stock_prices_multiple_stocks(mock_stock_response):
-    """Test retrieval of multiple stock prices"""
+    """Тестовое извлечение нескольких цен акций"""
     stocks = ["AAPL", "GOOGL"]
 
-    # Create different responses for each stock
     responses = [
         {"Global Quote": {"01. symbol": "AAPL", "05. price": "185.92"}},
         {"Global Quote": {"01. symbol": "GOOGL", "05. price": "142.56"}},

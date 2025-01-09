@@ -32,9 +32,9 @@ def analyze_cards(df: pd.DataFrame) -> List[Dict[str, Union[str, float]]]:
     """Анализ транзакций по картам и расчёт кэшбэка"""
     cards_info = []
 
-    for card_num in df["card"].unique():
-        card_df = df[df["card"] == card_num]
-        total_spent = sum(abs(amount) for amount in card_df["amount"])
+    for card_num in df["Номер карты"].unique():
+        card_df = df[df["Номер карты"] == card_num]
+        total_spent = sum(abs(amount) for amount in card_df["Сумма платежа"])
 
         cashback = round(total_spent / 100, 2)
 
@@ -51,18 +51,18 @@ def get_top_transactions(df: pd.DataFrame, n: int = 5) -> List[Dict[str, Union[s
         return []
 
     df_copy = df.copy()
-    df_copy["amount"] = df_copy["amount"].astype(float)
+    df_copy["Сумма платежа"] = df_copy["Сумма платежа"].astype(float)
 
-    df_copy["abs_amount"] = df_copy["amount"].abs().astype(float)
+    df_copy["abs_amount"] = df_copy["Сумма платежа"].abs().astype(float)
 
     top_df = df_copy.nlargest(n, "abs_amount")
 
     return [
         {
-            "date": row["date"].strftime("%d.%m.%Y"),
-            "amount": float(round(row["amount"], 2)),
-            "category": row["category"],
-            "description": row["description"],
+            "Дата платежа": row["Дата платежа"].strftime("%d.%m.%Y"),
+            "Сумма платежа": float(round(row["Сумма платежа"], 2)),
+            "Категория": row["Категория"],
+            "Описание": row["Описание"],
         }
         for _, row in top_df.iterrows()
     ]
