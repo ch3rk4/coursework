@@ -2,12 +2,12 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional, Union, Any
+from typing import Any, Dict, Optional, Union
 
 from src.reports import spending_by_category
 from src.services import investment_bank
-from src.views import get_dashboard_data
 from src.utils import load_user_settings
+from src.views import get_dashboard_data
 
 
 # Настраиваем логирование
@@ -30,10 +30,7 @@ def setup_logging(log_level: int = logging.INFO) -> None:
     logging.basicConfig(
         level=log_level,
         format=log_format,
-        handlers=[
-            logging.FileHandler(log_file, encoding='utf-8'),
-            logging.StreamHandler(sys.stdout)
-        ]
+        handlers=[logging.FileHandler(log_file, encoding="utf-8"), logging.StreamHandler(sys.stdout)],
     )
 
 
@@ -51,27 +48,22 @@ def load_operations(filepath: Union[str, Path]) -> Any:
         FileNotFoundError: Если файл не найден
     """
     import pandas as pd
+
     logger = logging.getLogger(__name__)
 
     try:
         # Читаем файл с явным указанием типов и названий колонок
         operations = pd.read_excel(
-            filepath,
-            dtype={
-                'Сумма платежа': float,
-                'Номер карты': str,
-                'Категория': str,
-                'Описание': str
-            }
+            filepath, dtype={"Сумма платежа": float, "Номер карты": str, "Категория": str, "Описание": str}
         )
 
         # Переименовываем колонки в стандартный вид
         column_mapping = {
-            'Дата платежа': 'date',
-            'Сумма платежа': 'amount',
-            'Номер карты': 'card',
-            'Категория': 'category',
-            'Описание': 'description'
+            "Дата платежа": "date",
+            "Сумма платежа": "amount",
+            "Номер карты": "card",
+            "Категория": "category",
+            "Описание": "description",
         }
 
         # Проверяем наличие всех необходимых колонок
@@ -83,7 +75,7 @@ def load_operations(filepath: Union[str, Path]) -> Any:
         operations = operations.rename(columns=column_mapping)
 
         # Преобразуем дату в правильный формат
-        operations['Дата платежа'] = pd.to_datetime(operations['date'])
+        operations["Дата платежа"] = pd.to_datetime(operations["date"])
 
         logger.info(f"Успешно загружено {len(operations)} операций из {filepath}")
         logger.info(f"Колонки в файле: {', '.join(operations.columns)}")
@@ -101,10 +93,10 @@ def load_operations(filepath: Union[str, Path]) -> Any:
 
 
 def run_financial_analysis(
-        operations_file: Union[str, Path],
-        category: Optional[str] = None,
-        investment_month: Optional[str] = None,
-        rounding_limit: int = 100
+    operations_file: Union[str, Path],
+    category: Optional[str] = None,
+    investment_month: Optional[str] = None,
+    rounding_limit: int = 100,
 ) -> Dict[str, Any]:
     """
     Запускает полный финансовый анализ
@@ -132,12 +124,8 @@ def run_financial_analysis(
         if investment_month:
             logger.info(f"Расчет инвестиций за месяц: {investment_month}")
             # Преобразуем DataFrame в список словарей для investment_bank
-            operations_list = operations.to_dict('records')
-            results["investment_amount"] = investment_bank(
-                investment_month,
-                operations_list,
-                rounding_limit
-            )
+            operations_list = operations.to_dict("records")
+            results["investment_amount"] = investment_bank(investment_month, operations_list, rounding_limit)
 
         return results
 
@@ -170,7 +158,7 @@ def main() -> None:
             operations_file=operations_file,
             category="Продукты",  # Пример категории
             investment_month=current_month,
-            rounding_limit=100
+            rounding_limit=100,
         )
 
         # Выводим результаты

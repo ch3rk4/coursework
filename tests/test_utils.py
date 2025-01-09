@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import requests
 
-from src.utils import (analyze_cards, get_currency_rates, get_greeting, get_stock_prices, get_top_transactions)
+from src.utils import analyze_cards, get_currency_rates, get_greeting, get_stock_prices, get_top_transactions
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))

@@ -46,8 +46,12 @@ def test_get_dashboard_data_success(mock_settings, mock_operations_df):
     ), patch(
         "src.views.get_top_transactions",
         return_value=[
-            {"Дата платежа": "15.01.2024", "Сумма платежа": 300.0, "Категория": "Shopping",
-             "Описание": "Test transaction"}
+            {
+                "Дата платежа": "15.01.2024",
+                "Сумма платежа": 300.0,
+                "Категория": "Shopping",
+                "Описание": "Test transaction",
+            }
         ],
     ), patch(
         "src.views.get_currency_rates",
